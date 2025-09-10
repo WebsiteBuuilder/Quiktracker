@@ -79,7 +79,6 @@ client.once('ready', async () => {
 		console.error('❌ Command registration failed:', e.message);
 		console.error('Full error:', e);
 	}
-	}
 });
 
 // Event wiring
