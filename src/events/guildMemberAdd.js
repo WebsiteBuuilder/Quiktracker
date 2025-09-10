@@ -6,21 +6,30 @@ const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
 module.exports = (client) => {
 	client.on('guildMemberAdd', async (member) => {
+		console.log(`👋 Member joined: ${member.user.tag} (${member.id}) in guild: ${member.guild.name}`);
 		try {
 			// Fetch latest invites to compare and find which one increased
 			const beforeUses = getGuildInviteUses(member.guild.id);
 			const invites = await member.guild.invites.fetch();
+			console.log(`📋 Checking ${invites.size} invites for usage changes`);
+			
 			let usedInvite = null;
 			invites.forEach(inv => {
 				const before = beforeUses.get(inv.code) ?? 0;
-				if ((inv.uses ?? 0) > before) usedInvite = inv;
-				updateInviteUse(member.guild.id, inv.code, inv.uses ?? 0);
+				const now = inv.uses ?? 0;
+				if (now > before) {
+					console.log(`🎯 Found used invite: ${inv.code} (${before} → ${now}) by ${inv.inviter?.tag}`);
+					usedInvite = inv;
+				}
+				updateInviteUse(member.guild.id, inv.code, now);
 			});
 
 			let inviterId = usedInvite?.inviter?.id ?? null;
 			const inviteCode = usedInvite?.code ?? null;
 
-			const isFake = (Date.now() - member.user.createdAt.getTime()) < FIVE_DAYS_MS;
+			const accountAge = Date.now() - member.user.createdAt.getTime();
+			const isFake = accountAge < FIVE_DAYS_MS;
+			console.log(`🔍 Account age: ${Math.floor(accountAge / (24 * 60 * 60 * 1000))} days, isFake: ${isFake}`);
 
 			if (inviterId) {
 				const [inviterStats] = await User.findOrCreate({
@@ -44,6 +53,32 @@ module.exports = (client) => {
 				const rewardRoleId = process.env.REWARD_ROLE_ID;
 				const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
 				if (inviterMember) await ensureRewardRole(inviterMember, inviterStats, threshold, rewardRoleId);
+
+				// Announcement
+				const channelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID;
+				console.log(`📢 Announcement channel ID: ${channelId}`);
+				if (channelId) {
+					const channel = member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null);
+					if (channel && channel.isTextBased()) {
+						const total = (inviterStats.regularInvites - inviterStats.fakeInvites - inviterStats.leftInvites + inviterStats.bonusInvites);
+						const inviteUsesNow = usedInvite?.uses ?? 0;
+						const message = `🎉 ${member} joined — invited by <@${inviterId}> using code \`${inviteCode}\` (uses: ${inviteUsesNow}). Invites: ${total} (Reg ${inviterStats.regularInvites} • Fake ${inviterStats.fakeInvites} • Left ${inviterStats.leftInvites} • Bonus ${inviterStats.bonusInvites}).`;
+						console.log(`📤 Sending announcement: ${message}`);
+						await channel.send(message);
+					} else {
+						console.log(`❌ Could not find or access announcement channel: ${channelId}`);
+					}
+				}
+			}
+			else {
+				// Unknown inviter (vanity or expired/unknown code)
+				const channelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID;
+				if (channelId) {
+					const channel = member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null);
+					if (channel && channel.isTextBased()) {
+						await channel.send(`🎉 ${member} joined — inviter unknown (vanity or expired invite).`);
+					}
+				}
 			}
 		} catch (err) {
 			console.error('Error in guildMemberAdd handler:', err);

@@ -19,10 +19,12 @@ Setup
    REWARD_ROLE_ID=role_id_to_grant_on_threshold
    INVITE_THRESHOLD=3
    ```
-4. Register slash commands (dev guild):
+4. Register slash commands (global):
    ```bash
    npm run deploy-commands
    ```
+   Global deploy is enabled. It may take up to 1 hour for commands to appear everywhere.
+   - You can also auto-deploy on startup by setting `DEPLOY_COMMANDS_ON_START=true` (see below).
 5. Start the bot:
    ```bash
    npm start
@@ -41,6 +43,7 @@ Features
 - Tracks leavers and decrements inviter's verified count.
 - Awards a role after `INVITE_THRESHOLD` verified invites.
 - Real-time stats similar to invite-tracker style: regular, fake, left, bonus, total.
+- Optional join announcements: set `INVITE_ANNOUNCE_CHANNEL_ID` to announce who invited whom and which code was used.
 
 Railway Deployment
 ------------------
@@ -50,8 +53,19 @@ Railway Deployment
 4. Set the start command to `npm start` (Railway can infer from package.json).
 5. Deploy. Logs will show when the bot is online.
 6. Storage: By default, the SQLite file will be at `/data/database.sqlite` on Railway if the `/data` volume exists. You can override with `SQLITE_STORAGE`.
+7. To enable announcements, add `INVITE_ANNOUNCE_CHANNEL_ID` with the target text channel ID.
+
+Auto Command Deployment (optional)
+----------------------------------
+Add the following variables in Railway to deploy commands automatically on startup:
+```
+DEPLOY_COMMANDS_ON_START=true
+COMMAND_DEPLOY_SCOPE=global   # or 'guild' if you want to target a single guild
+# If using guild scope:
+# GUILD_ID=your_guild_id
+```
 
 Notes
 -----
 - Ensure the bot has `Manage Roles`, `View Audit Log`, and `Manage Guild` permissions and the role hierarchy allows granting the reward role.
-- For production global commands, switch the deploy script to use the global route and allow up to 1 hour for propagation.
+- Commands are deployed globally by default; allow up to 1 hour for propagation.
