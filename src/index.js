@@ -14,10 +14,8 @@ const client = new Client({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMembers,
 		GatewayIntentBits.GuildInvites,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
 	],
-	partials: [Partials.GuildMember, Partials.User, Partials.Channel],
+	partials: [Partials.GuildMember, Partials.User],
 });
 
 client.once('ready', async () => {
