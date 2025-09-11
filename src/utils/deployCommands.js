@@ -30,6 +30,19 @@ async function deployCommands({ token, clientId, commandsDir = 'src/commands', s
 	return { count: body.length, scope: 'global' };
 }
 
-module.exports = { deployCommands };
+async function clearCommands({ token, clientId, scope = 'global', guildId }) {
+	if (!token) throw new Error('Missing bot token');
+	if (!clientId) throw new Error('Missing clientId');
+	const rest = new REST({ version: '10' }).setToken(token);
+	if (scope === 'guild') {
+		if (!guildId) throw new Error('Guild scope requires guildId');
+		await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] });
+		return { cleared: true, scope: 'guild', guildId };
+	}
+	await rest.put(Routes.applicationCommands(clientId), { body: [] });
+	return { cleared: true, scope: 'global' };
+}
+
+module.exports = { deployCommands, clearCommands };
 
 

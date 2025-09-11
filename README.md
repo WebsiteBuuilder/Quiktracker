@@ -19,12 +19,11 @@ Setup
    REWARD_ROLE_ID=role_id_to_grant_on_threshold
    INVITE_THRESHOLD=3
    ```
-4. Register slash commands (global):
+4. Register slash commands:
    ```bash
    npm run deploy-commands
    ```
-   Global deploy is enabled. It may take up to 1 hour for commands to appear everywhere.
-   - You can also auto-deploy on startup by setting `DEPLOY_COMMANDS_ON_START=true` (see below).
+   By default we deploy to your guild for instant testing (set `GUILD_ID`). Global deploy is optional.
 5. Start the bot:
    ```bash
    npm start
@@ -55,14 +54,13 @@ Railway Deployment
 6. Storage: By default, the SQLite file will be at `/data/database.sqlite` on Railway if the `/data` volume exists. You can override with `SQLITE_STORAGE`.
 7. To enable announcements, add `INVITE_ANNOUNCE_CHANNEL_ID` with the target text channel ID.
 
-Auto Command Deployment (optional)
+Command Deployment Options
 ----------------------------------
-Add the following variables in Railway to deploy commands automatically on startup:
+Control deployment behavior via env variables:
 ```
-DEPLOY_COMMANDS_ON_START=true
-COMMAND_DEPLOY_SCOPE=global   # or 'guild' if you want to target a single guild
-# If using guild scope:
-# GUILD_ID=your_guild_id
+GUILD_ID=your_guild_id              # recommended for instant commands
+DEPLOY_GLOBAL_COMMANDS=false        # set true to also deploy globally
+CLEAR_GLOBAL_COMMANDS=true          # set true once to clear duplicates
 ```
 
 Notes

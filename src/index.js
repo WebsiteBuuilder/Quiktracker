@@ -7,7 +7,7 @@ const {
 } = require('discord.js');
 const { sequelize } = require('./db');
 const { primeGuildInvites } = require('./utils/inviteCache');
-const { deployCommands } = require('./utils/deployCommands');
+const { deployCommands, clearCommands } = require('./utils/deployCommands');
 
 const client = new Client({
 	intents: [
@@ -36,7 +36,7 @@ client.once('ready', async () => {
 	
 	console.log('🎯 Bot is ready and tracking invites!');
 
-	// Force deploy commands on startup
+	// Deploy commands on startup (guild-only by default)
 	console.log('🔄 Starting command registration...');
 	try {
 		const clientId = process.env.CLIENT_ID;
@@ -50,7 +50,14 @@ client.once('ready', async () => {
 			throw new Error('Missing required environment variables: CLIENT_ID and/or DISCORD_TOKEN');
 		}
 
-		// Always deploy to guild first for instant testing
+		// Optional cleanup
+		if (String(process.env.CLEAR_GLOBAL_COMMANDS || '').toLowerCase() === 'true') {
+			console.log('🧹 Clearing global commands...');
+			await clearCommands({ token, clientId, scope: 'global' });
+			console.log('✅ Cleared global commands');
+		}
+
+		// Deploy to guild first for instant testing
 		if (guildId) {
 			console.log('⚡ Deploying commands to guild (instant)...');
 			const guildResult = await deployCommands({
@@ -63,16 +70,18 @@ client.once('ready', async () => {
 			console.log(`✅ Guild commands deployed! Count: ${guildResult.count}`);
 		}
 
-		// Then deploy globally
-		console.log('🌍 Deploying commands globally...');
-		const globalResult = await deployCommands({ 
-			token, 
-			clientId,
-			scope: 'global',
-			commandsDir: 'src/commands'
-		});
-		console.log(`✅ Global commands deployed! Count: ${globalResult.count}`);
-		console.log('Note: Global commands can take up to 1 hour to appear in all servers');
+		// Optional global deployment if explicitly enabled
+		if (String(process.env.DEPLOY_GLOBAL_COMMANDS || '').toLowerCase() === 'true') {
+			console.log('🌍 Deploying commands globally...');
+			const globalResult = await deployCommands({ 
+				token, 
+				clientId,
+				scope: 'global',
+				commandsDir: 'src/commands'
+			});
+			console.log(`✅ Global commands deployed! Count: ${globalResult.count}`);
+			console.log('Note: Global commands can take up to 1 hour to appear in all servers');
+		}
 	} catch (e) {
 		console.error('❌ Command registration failed:', e.message);
 		console.error('Full error:', e);
