@@ -12,8 +12,9 @@ module.exports.execute = async (interaction) => {
 	const regular = stats?.regularInvites ?? 0;
 	const fake = stats?.fakeInvites ?? 0;
 	const left = stats?.leftInvites ?? 0;
-	const bonus = stats?.bonusInvites ?? 0;
-	const total = regular - fake - left + bonus;
+	const pf = stats?.paidReferrals ?? 0;
+	const fo = stats?.freeOrders ?? 0;
+	const total = regular - fake - left + pf;
 
 	const embed = new EmbedBuilder()
 		.setTitle(`Invites for ${user.tag}`)
@@ -21,7 +22,8 @@ module.exports.execute = async (interaction) => {
 			{ name: 'Regular', value: String(regular), inline: true },
 			{ name: 'Fake', value: String(fake), inline: true },
 			{ name: 'Left', value: String(left), inline: true },
-			{ name: 'Bonus', value: String(bonus), inline: true },
+			{ name: 'PF', value: String(pf), inline: true },
+			{ name: 'FO', value: String(fo), inline: true },
 			{ name: 'Total', value: String(total), inline: true },
 		)
 		.setColor(0x5865F2);

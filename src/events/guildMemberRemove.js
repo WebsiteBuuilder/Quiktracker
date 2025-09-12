@@ -1,5 +1,4 @@
 const { User, JoinLog } = require('../db');
-const { ensureRewardRole } = require('../utils/rewards');
 
 module.exports = (client) => {
 	client.on('guildMemberRemove', async (member) => {
@@ -18,16 +17,11 @@ module.exports = (client) => {
 			console.log(`📉 Recording leave for inviter: ${inviterId}`);
 			const [inviterStats] = await User.findOrCreate({
 				where: { userId: inviterId, guildId: member.guild.id },
-				defaults: { regularInvites: 0, fakeInvites: 0, leftInvites: 0, bonusInvites: 0 },
+				defaults: { regularInvites: 0, fakeInvites: 0, leftInvites: 0, paidReferrals: 0, freeOrders: 0 },
 			});
 			inviterStats.leftInvites += 1;
 			await inviterStats.save();
 			console.log(`✅ Updated left invites for ${inviterId}: ${inviterStats.leftInvites}`);
-
-			const threshold = Number(process.env.INVITE_THRESHOLD || 3);
-			const rewardRoleId = process.env.REWARD_ROLE_ID;
-			const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
-			if (inviterMember) await ensureRewardRole(inviterMember, inviterStats, threshold, rewardRoleId);
 		} catch (err) {
 			console.error('❌ Error in guildMemberRemove handler:', err);
 		}

@@ -1,6 +1,5 @@
 const { User, JoinLog } = require('../db');
 const { getGuildInviteUses, updateInviteUse } = require('../utils/inviteCache');
-const { ensureRewardRole } = require('../utils/rewards');
 
 const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -34,7 +33,7 @@ module.exports = (client) => {
 			if (inviterId) {
 				const [inviterStats] = await User.findOrCreate({
 					where: { userId: inviterId, guildId: member.guild.id },
-					defaults: { regularInvites: 0, fakeInvites: 0, leftInvites: 0, bonusInvites: 0 },
+					defaults: { regularInvites: 0, fakeInvites: 0, leftInvites: 0, paidReferrals: 0, freeOrders: 0 },
 				});
 				if (isFake) inviterStats.fakeInvites += 1; else inviterStats.regularInvites += 1;
 				await inviterStats.save();
@@ -48,21 +47,15 @@ module.exports = (client) => {
 					isFake,
 				});
 
-				// Reward role check
-				const threshold = Number(process.env.INVITE_THRESHOLD || 3);
-				const rewardRoleId = process.env.REWARD_ROLE_ID;
-				const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
-				if (inviterMember) await ensureRewardRole(inviterMember, inviterStats, threshold, rewardRoleId);
-
 				// Announcement
 				const channelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID;
 				console.log(`📢 Announcement channel ID: ${channelId}`);
 				if (channelId) {
 					const channel = member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null);
 					if (channel && channel.isTextBased()) {
-						const total = (inviterStats.regularInvites - inviterStats.fakeInvites - inviterStats.leftInvites + inviterStats.bonusInvites);
+						const total = (inviterStats.regularInvites - inviterStats.fakeInvites - inviterStats.leftInvites + inviterStats.paidReferrals);
 						const inviteUsesNow = usedInvite?.uses ?? 0;
-						const message = `🎉 ${member} joined — invited by <@${inviterId}> using code \`${inviteCode}\` (uses: ${inviteUsesNow}). Invites: ${total} (Reg ${inviterStats.regularInvites} • Fake ${inviterStats.fakeInvites} • Left ${inviterStats.leftInvites} • Bonus ${inviterStats.bonusInvites}).`;
+						const message = `🎉 ${member} joined — invited by <@${inviterId}> using code \`${inviteCode}\` (uses: ${inviteUsesNow}). Invites: ${total} (Reg ${inviterStats.regularInvites} • Fake ${inviterStats.fakeInvites} • Left ${inviterStats.leftInvites} • PF ${inviterStats.paidReferrals} • FO ${inviterStats.freeOrders}).`;
 						console.log(`📤 Sending announcement: ${message}`);
 						await channel.send(message);
 					} else {

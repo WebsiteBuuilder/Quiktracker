@@ -24,7 +24,8 @@ const User = sequelize.define('User', {
 	regularInvites: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 	fakeInvites: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 	leftInvites: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-	bonusInvites: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+	paidReferrals: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+	freeOrders: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 });
 
 const JoinLog = sequelize.define('JoinLog', {

@@ -16,8 +16,6 @@ Setup
    DISCORD_TOKEN=your_bot_token
    CLIENT_ID=your_application_id
    GUILD_ID=your_guild_id_for_dev
-   REWARD_ROLE_ID=role_id_to_grant_on_threshold
-   INVITE_THRESHOLD=3
    ```
 4. Register slash commands:
    ```bash
@@ -31,17 +29,16 @@ Setup
 
 Key Commands
 ------------
-- `/invites [user]` — Show a user's invite statistics (regular, fake, left, bonus, total).
-- `/addreferral user:<user> count:<int>` — Add manual paid referrals (bonus) to a user.
-- `/addreferall user:<user> count:<int>` — Alias spelling for convenience.
+- `/invites [user]` — Show a user's invite statistics (regular, fake, left, PF, FO, total).
+- `/addpf user:<user>` — Add 1 Paid Referral (PF) to a user. Users get 1 Free Order (FO) for every 3 PF.
 
 Features
 --------
 - Tracks invite uses with caching and reconciliation on join/leave.
 - Filters fake invites (configurable account age threshold, default 5 days).
 - Tracks leavers and decrements inviter's verified count.
-- Awards a role after `INVITE_THRESHOLD` verified invites.
-- Real-time stats similar to invite-tracker style: regular, fake, left, bonus, total.
+- PF/FO reward system: Users automatically get 1 Free Order (FO) for every 3 Paid Referrals (PF).
+- Real-time stats: regular, fake, left, PF, FO, total.
 - Optional join announcements: set `INVITE_ANNOUNCE_CHANNEL_ID` to announce who invited whom and which code was used.
 
 Railway Deployment
@@ -65,5 +62,5 @@ CLEAR_GLOBAL_COMMANDS=true          # set true once to clear duplicates
 
 Notes
 -----
-- Ensure the bot has `Manage Roles`, `View Audit Log`, and `Manage Guild` permissions and the role hierarchy allows granting the reward role.
+- Ensure the bot has `View Audit Log` and `Manage Guild` permissions.
 - Commands are deployed globally by default; allow up to 1 hour for propagation.
