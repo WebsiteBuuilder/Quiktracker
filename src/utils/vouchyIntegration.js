@@ -1,62 +1,81 @@
 const { ApplicationCommandType } = require('discord.js');
 
+function resolveVouchyChannel(guild) {
+	const configuredChannelId = process.env.VOUCHY_CHANNEL_ID || process.env.INVITE_ANNOUNCE_CHANNEL_ID || guild.systemChannelId;
+	if (!configuredChannelId) return null;
+	return guild.channels.cache.get(configuredChannelId) || null;
+}
+
+function buildCommandVariants(commandName, userId, amount) {
+	const variants = [];
+	const prefix = process.env.VOUCHY_PREFIX || '';
+	const vouchyBotId = process.env.VOUCHY_BOT_ID || '';
+
+	// 1) Prefixed (if provided)
+	if (prefix) variants.push(`${prefix}${commandName} <@${userId}> ${amount}`);
+
+	// 2) Mention bot first if provided
+	if (vouchyBotId) variants.push(`<@${vouchyBotId}> ${commandName} <@${userId}> ${amount}`);
+
+	// 3) Slash-looking (some bots parse message content)
+	variants.push(`/${commandName} <@${userId}> ${amount}`);
+
+	// 4) Plain command
+	variants.push(`${commandName} <@${userId}> ${amount}`);
+
+	// De-duplicate while preserving order
+	return Array.from(new Set(variants));
+}
+
 /**
  * Execute Vouchy commands by creating a proper application command interaction
  */
 async function executeVouchyCommand(guild, channel, commandName, userId, amount) {
 	try {
 		console.log(`🎯 Attempting to execute Vouchy command: ${commandName} for user ${userId} with amount ${amount}`);
-		
-		// Method 1: Try to find Vouchy bot and trigger its command
-		const vouchyBot = guild.members.cache.find(member => 
-			member.user.bot && 
-			(member.user.username.toLowerCase().includes('vouchy') || 
-			 member.user.username.toLowerCase().includes('vouch'))
-		);
-		
-		if (!vouchyBot) {
-			console.log('❌ Vouchy bot not found in guild');
+
+		// Resolve channel if not provided
+		const targetChannel = channel || resolveVouchyChannel(guild);
+		if (!targetChannel || !targetChannel.isTextBased()) {
+			console.log('❌ No valid Vouchy channel found');
 			return false;
 		}
-		
-		console.log(`✅ Found Vouchy bot: ${vouchyBot.user.username} (${vouchyBot.user.id})`);
-		
-		// Method 2: Send as a message that looks like a slash command
-		const commandMessage = `/${commandName} <@${userId}> ${amount}`;
-		await channel.send(commandMessage);
-		console.log(`📤 Sent command as message: ${commandMessage}`);
-		
-		// Method 3: Try to trigger via webhook if available
-		try {
-			const webhooks = await channel.fetchWebhooks();
-			const vouchyWebhook = webhooks.find(wh => 
-				wh.owner && 
-				(wh.owner.username.toLowerCase().includes('vouchy') || 
-				 wh.owner.username.toLowerCase().includes('vouch'))
-			);
-			
-			if (vouchyWebhook) {
-				await vouchyWebhook.send({
-					content: `/${commandName} <@${userId}> ${amount}`,
-					username: 'InviteBot Integration'
-				});
-				console.log(`📤 Sent via Vouchy webhook`);
+
+		const messagesToTry = buildCommandVariants(commandName, userId, amount);
+		let sentAny = false;
+		for (const msg of messagesToTry) {
+			try {
+				await targetChannel.send(msg);
+				console.log(`📤 Sent Vouchy command variant: ${msg}`);
+				sentAny = true;
+			} catch (sendErr) {
+				console.error(`❌ Failed to send variant "${msg}":`, sendErr.message);
 			}
-		} catch (webhookError) {
-			console.log('ℹ️ No webhook method available');
+		}
+
+		// Optional: Try webhooks if configured explicitly
+		const useWebhook = String(process.env.VOUCHY_USE_WEBHOOK || '').toLowerCase() === 'true';
+		if (useWebhook) {
+			try {
+				const webhooks = await targetChannel.fetchWebhooks();
+				const webhook = webhooks.first();
+				if (webhook) {
+					for (const msg of messagesToTry) {
+						try {
+							await webhook.send({ content: msg, username: 'InviteBot' });
+							console.log(`📤 Sent via webhook: ${msg}`);
+							sentAny = true;
+						} catch (whErr) {
+							console.error('❌ Webhook send failed:', whErr.message);
+						}
+					}
+				}
+			} catch (webhookError) {
+				console.log('ℹ️ No webhook method available');
+			}
 		}
 		
-		// Method 4: Alternative command format without slash
-		setTimeout(async () => {
-			try {
-				await channel.send(`${commandName} <@${userId}> ${amount}`);
-				console.log(`📤 Sent alternative format: ${commandName} <@${userId}> ${amount}`);
-			} catch (altError) {
-				console.error('❌ Alternative format failed:', altError.message);
-			}
-		}, 1000);
-		
-		return true;
+		return sentAny;
 		
 	} catch (error) {
 		console.error(`❌ Error executing Vouchy command:`, error.message);

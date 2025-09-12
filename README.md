@@ -41,6 +41,7 @@ Features
 - Vouchy integration: Automatically awards 1 point via `/addpoints` for each successful invite.
 - Real-time stats: regular, fake, left, PF, FO, total.
 - Optional join announcements: set `INVITE_ANNOUNCE_CHANNEL_ID` to announce who invited whom and which code was used.
+ - Vouchy integration: configure `VOUCHY_CHANNEL_ID`, `VOUCHY_PREFIX`, and/or `VOUCHY_BOT_ID` for reliable command execution. Set `VOUCHY_USE_WEBHOOK=true` to also try webhook delivery.
 
 Railway Deployment
 ------------------
