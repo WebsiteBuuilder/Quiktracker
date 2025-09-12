@@ -47,6 +47,28 @@ module.exports = (client) => {
 					isFake,
 				});
 
+				// Award Vouchy points for successful (non-fake) invites
+				if (!isFake) {
+					try {
+						console.log(`🎯 Awarding 1 Vouchy point to ${inviterId} for successful invite`);
+						const addPointsCommand = `/addpoints <@${inviterId}> 1`;
+						
+						// Find a channel where the bot can execute the Vouchy command
+						const channelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID || member.guild.systemChannelId;
+						const channel = channelId ? (member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null)) : null;
+						
+						if (channel && channel.isTextBased()) {
+							await channel.send(addPointsCommand);
+							console.log(`✅ Sent Vouchy command: ${addPointsCommand}`);
+						} else {
+							console.log(`❌ Could not find suitable channel to send Vouchy command`);
+						}
+					} catch (vouchyError) {
+						console.error('❌ Error awarding Vouchy points:', vouchyError.message);
+						// Don't throw - continue with normal flow
+					}
+				}
+
 				// Announcement
 				const channelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID;
 				console.log(`📢 Announcement channel ID: ${channelId}`);

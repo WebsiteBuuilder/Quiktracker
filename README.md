@@ -38,6 +38,7 @@ Features
 - Filters fake invites (configurable account age threshold, default 5 days).
 - Tracks leavers and decrements inviter's verified count.
 - PF/FO reward system: Users automatically get 1 Free Order (FO) for every 3 Paid Referrals (PF).
+- Vouchy integration: Automatically awards 1 point via `/addpoints` for each successful invite.
 - Real-time stats: regular, fake, left, PF, FO, total.
 - Optional join announcements: set `INVITE_ANNOUNCE_CHANNEL_ID` to announce who invited whom and which code was used.
 
