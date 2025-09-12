@@ -1,4 +1,5 @@
 const { User, JoinLog } = require('../db');
+const { removeVouchyPoints } = require('../utils/vouchyIntegration');
 
 module.exports = (client) => {
 	client.on('guildMemberRemove', async (member) => {
@@ -33,9 +34,12 @@ module.exports = (client) => {
 					const channel = channelId ? (member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null)) : null;
 					
 					if (channel && channel.isTextBased()) {
-						// Send the Vouchy removepoints command
-						await channel.send(`removepoints <@${inviterId}> 1`);
-						console.log(`✅ Sent Vouchy removepoints command for user ${inviterId}`);
+						const success = await removeVouchyPoints(member.guild, channel, inviterId, 1);
+						if (success) {
+							console.log(`✅ Successfully triggered Vouchy removepoints for user ${inviterId}`);
+						} else {
+							console.log(`❌ Failed to trigger Vouchy removepoints for user ${inviterId}`);
+						}
 					} else {
 						console.log(`❌ Could not find suitable channel to send Vouchy command`);
 					}

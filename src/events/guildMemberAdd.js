@@ -1,5 +1,6 @@
 const { User, JoinLog } = require('../db');
 const { getGuildInviteUses, updateInviteUse } = require('../utils/inviteCache');
+const { addVouchyPoints } = require('../utils/vouchyIntegration');
 
 const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -57,9 +58,12 @@ module.exports = (client) => {
 						const channel = channelId ? (member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null)) : null;
 						
 						if (channel && channel.isTextBased()) {
-							// Send the Vouchy command - try without the slash prefix first
-							await channel.send(`addpoints <@${inviterId}> 1`);
-							console.log(`✅ Sent Vouchy addpoints command for user ${inviterId}`);
+							const success = await addVouchyPoints(member.guild, channel, inviterId, 1);
+							if (success) {
+								console.log(`✅ Successfully triggered Vouchy addpoints for user ${inviterId}`);
+							} else {
+								console.log(`❌ Failed to trigger Vouchy addpoints for user ${inviterId}`);
+							}
 						} else {
 							console.log(`❌ Could not find suitable channel to send Vouchy command`);
 						}
