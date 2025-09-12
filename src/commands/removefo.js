@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { User } = require('../db');
+const { updateLeaderboardForGuild } = require('../utils/leaderboard');
 
 module.exports.data = new SlashCommandBuilder()
 	.setName('removefo')
@@ -30,4 +31,7 @@ module.exports.execute = async (interaction) => {
 	
 	const message = `Removed ${count} Free Order${count > 1 ? 's' : ''} from ${user.tag}. FO: ${oldFO} → ${stats.freeOrders}`;
 	await interaction.reply({ content: message, ephemeral: false });
+
+	// Refresh leaderboard after FO manual change
+	updateLeaderboardForGuild(interaction.guild).catch(() => {});
 };

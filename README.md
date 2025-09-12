@@ -42,6 +42,7 @@ Features
 - Real-time stats: regular, fake, left, PF, FO, total.
 - Optional join announcements: set `INVITE_ANNOUNCE_CHANNEL_ID` to announce who invited whom and which code was used.
  - Vouchy integration: configure `VOUCHY_CHANNEL_ID`, `VOUCHY_PREFIX`, and/or `VOUCHY_BOT_ID` for reliable command execution. Set `VOUCHY_USE_WEBHOOK=true` to also try webhook delivery.
+ - Live leaderboard: bot pins a single message with top inviters and updates it automatically on joins/leaves and PF/FO changes. Set `LEADERBOARD_CHANNEL_ID` (falls back to `INVITE_ANNOUNCE_CHANNEL_ID` or system channel).
 
 Railway Deployment
 ------------------
@@ -60,6 +61,7 @@ Control deployment behavior via env variables:
 GUILD_ID=your_guild_id              # recommended for instant commands
 DEPLOY_GLOBAL_COMMANDS=false        # set true to also deploy globally
 CLEAR_GLOBAL_COMMANDS=true          # set true once to clear duplicates
+LEADERBOARD_CHANNEL_ID=channel_id   # optional dedicated leaderboard channel
 ```
 
 Notes

@@ -1,4 +1,5 @@
 const { User, JoinLog } = require('../db');
+const { updateLeaderboardForGuild } = require('../utils/leaderboard');
 const { getGuildInviteUses, updateInviteUse } = require('../utils/inviteCache');
 const { addVouchyPoints } = require('../utils/vouchyIntegration');
 
@@ -38,6 +39,7 @@ module.exports = (client) => {
 				});
 				if (isFake) inviterStats.fakeInvites += 1; else inviterStats.regularInvites += 1;
 				await inviterStats.save();
+				updateLeaderboardForGuild(member.guild).catch(() => {});
 
 				// Track join mapping
 				await JoinLog.create({
@@ -84,6 +86,7 @@ module.exports = (client) => {
 						const message = `🎉 ${member} joined — invited by <@${inviterId}> using code \`${inviteCode}\` (uses: ${inviteUsesNow}). Invites: ${total} (Reg ${inviterStats.regularInvites} • Fake ${inviterStats.fakeInvites} • Left ${inviterStats.leftInvites} • PF ${inviterStats.paidReferrals} • FO ${inviterStats.freeOrders}).`;
 						console.log(`📤 Sending announcement: ${message}`);
 						await channel.send(message);
+						updateLeaderboardForGuild(member.guild).catch(() => {});
 					} else {
 						console.log(`❌ Could not find or access announcement channel: ${channelId}`);
 					}

@@ -7,6 +7,7 @@ const {
 } = require('discord.js');
 const { sequelize, migrateDatabase } = require('./db');
 const { primeGuildInvites } = require('./utils/inviteCache');
+const { updateLeaderboardForGuild } = require('./utils/leaderboard');
 const { deployCommands, clearCommands } = require('./utils/deployCommands');
 
 const client = new Client({
@@ -36,6 +37,8 @@ client.once('ready', async () => {
 	for (const guild of client.guilds.cache.values()) {
 		console.log(`🔄 Priming invites for guild: ${guild.name} (${guild.id})`);
 		await primeGuildInvites(guild);
+		// Render leaderboard once at startup
+		await updateLeaderboardForGuild(guild).catch(() => {});
 	}
 	
 	console.log('🎯 Bot is ready and tracking invites!');

@@ -1,4 +1,5 @@
 const { User, JoinLog } = require('../db');
+const { updateLeaderboardForGuild } = require('../utils/leaderboard');
 const { removeVouchyPoints } = require('../utils/vouchyIntegration');
 
 module.exports = (client) => {
@@ -22,6 +23,7 @@ module.exports = (client) => {
 			});
 			inviterStats.leftInvites += 1;
 			await inviterStats.save();
+			updateLeaderboardForGuild(member.guild).catch(() => {});
 			console.log(`✅ Updated left invites for ${inviterId}: ${inviterStats.leftInvites}`);
 
 			// Remove Vouchy point if the original invite was not fake

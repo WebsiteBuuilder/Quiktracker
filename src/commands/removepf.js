@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { User } = require('../db');
+const { updateLeaderboardForGuild } = require('../utils/leaderboard');
 
 module.exports.data = new SlashCommandBuilder()
 	.setName('removepf')
@@ -28,6 +29,9 @@ module.exports.execute = async (interaction) => {
 	stats.freeOrders = newFreeOrders;
 	
 	await stats.save();
+
+	// Refresh leaderboard after PF/FO change
+	updateLeaderboardForGuild(interaction.guild).catch(() => {});
 	
 	let message = `Removed 1 PF from ${user.tag}. PF: ${oldPF} → ${stats.paidReferrals}`;
 	

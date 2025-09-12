@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { User } = require('../db');
+const { updateLeaderboardForGuild } = require('../utils/leaderboard');
 
 module.exports.data = new SlashCommandBuilder()
 	.setName('addpf')
@@ -22,6 +23,9 @@ module.exports.execute = async (interaction) => {
 	stats.freeOrders = newFreeOrders;
 	
 	await stats.save();
+
+	// Refresh leaderboard after PF/FO change
+	updateLeaderboardForGuild(interaction.guild).catch(() => {});
 	
 	let message = `Added 1 PF to ${user.tag}. Total PF: ${stats.paidReferrals}`;
 	
