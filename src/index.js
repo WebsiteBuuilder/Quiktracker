@@ -5,7 +5,7 @@ const {
 	Partials,
 	PermissionFlagsBits,
 } = require('discord.js');
-const { sequelize } = require('./db');
+const { sequelize, migrateDatabase } = require('./db');
 const { primeGuildInvites } = require('./utils/inviteCache');
 const { deployCommands, clearCommands } = require('./utils/deployCommands');
 
@@ -23,6 +23,10 @@ client.once('ready', async () => {
 	console.log(`📊 Connected to ${client.guilds.cache.size} guild(s)`);
 	
 	try {
+		// Run migration first to add new columns
+		await migrateDatabase();
+		
+		// Then sync the database
 		await sequelize.sync();
 		console.log('📁 Database synced successfully');
 	} catch (err) {

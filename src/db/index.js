@@ -18,6 +18,48 @@ const sequelize = new Sequelize({
 	logging: false,
 });
 
+// Migration function to add new columns if they don't exist
+async function migrateDatabase() {
+	try {
+		const queryInterface = sequelize.getQueryInterface();
+		const tableDescription = await queryInterface.describeTable('Users');
+		
+		// Add paidReferrals column if it doesn't exist
+		if (!tableDescription.paidReferrals) {
+			console.log('🔄 Adding paidReferrals column...');
+			await queryInterface.addColumn('Users', 'paidReferrals', {
+				type: sequelize.Sequelize.INTEGER,
+				allowNull: false,
+				defaultValue: 0,
+			});
+			console.log('✅ Added paidReferrals column');
+		}
+		
+		// Add freeOrders column if it doesn't exist
+		if (!tableDescription.freeOrders) {
+			console.log('🔄 Adding freeOrders column...');
+			await queryInterface.addColumn('Users', 'freeOrders', {
+				type: sequelize.Sequelize.INTEGER,
+				allowNull: false,
+				defaultValue: 0,
+			});
+			console.log('✅ Added freeOrders column');
+		}
+		
+		// Migrate existing bonusInvites to paidReferrals if bonusInvites column exists
+		if (tableDescription.bonusInvites && tableDescription.paidReferrals) {
+			console.log('🔄 Migrating bonusInvites to paidReferrals...');
+			await sequelize.query('UPDATE Users SET paidReferrals = bonusInvites WHERE paidReferrals = 0');
+			console.log('✅ Migrated bonusInvites data');
+		}
+		
+		console.log('✅ Database migration completed');
+	} catch (error) {
+		console.error('❌ Migration error:', error.message);
+		// Don't throw - let the app continue with sync
+	}
+}
+
 const User = sequelize.define('User', {
 	userId: { type: DataTypes.STRING, allowNull: false, unique: true },
 	guildId: { type: DataTypes.STRING, allowNull: false },
@@ -40,6 +82,7 @@ module.exports = {
 	sequelize,
 	User,
 	JoinLog,
+	migrateDatabase,
 };
 
 
