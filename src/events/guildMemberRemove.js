@@ -22,6 +22,28 @@ module.exports = (client) => {
 			inviterStats.leftInvites += 1;
 			await inviterStats.save();
 			console.log(`✅ Updated left invites for ${inviterId}: ${inviterStats.leftInvites}`);
+
+			// Remove Vouchy point if the original invite was not fake
+			if (!log.isFake) {
+				try {
+					console.log(`🎯 Removing 1 Vouchy point from ${inviterId} for member leave`);
+					
+					// Find a channel where we can send the Vouchy command
+					const channelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID || member.guild.systemChannelId;
+					const channel = channelId ? (member.guild.channels.cache.get(channelId) || await member.guild.channels.fetch(channelId).catch(() => null)) : null;
+					
+					if (channel && channel.isTextBased()) {
+						// Send the Vouchy removepoints command
+						await channel.send(`removepoints <@${inviterId}> 1`);
+						console.log(`✅ Sent Vouchy removepoints command for user ${inviterId}`);
+					} else {
+						console.log(`❌ Could not find suitable channel to send Vouchy command`);
+					}
+				} catch (vouchyError) {
+					console.error('❌ Error removing Vouchy points:', vouchyError.message);
+					// Don't throw - continue with normal flow
+				}
+			}
 		} catch (err) {
 			console.error('❌ Error in guildMemberRemove handler:', err);
 		}
