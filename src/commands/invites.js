@@ -14,6 +14,7 @@ module.exports.execute = async (interaction) => {
 	const left = stats?.leftInvites ?? 0;
 	const pf = stats?.paidReferrals ?? 0;
 	const fo = stats?.freeOrders ?? 0;
+	const nf = stats?.noFeeOrders ?? 0;
 	const total = regular - fake - left + pf;
 
 	const embed = new EmbedBuilder()
@@ -24,7 +25,7 @@ module.exports.execute = async (interaction) => {
 			{ name: 'Left', value: String(left), inline: true },
 			{ name: 'PF', value: String(pf), inline: true },
 			{ name: 'FO', value: String(fo), inline: true },
-			{ name: 'Total', value: String(total), inline: true },
+			{ name: 'NF', value: String(nf), inline: true },
 		)
 		.setColor(0x5865F2);
 

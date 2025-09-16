@@ -29,8 +29,13 @@ Setup
 
 Key Commands
 ------------
-- `/invites [user]` — Show a user's invite statistics (regular, fake, left, PF, FO, total).
+- `/invites [user]` — Show a user's invite statistics (regular, fake, left, PF, FO, NF, total).
 - `/addpf user:<user>` — Add 1 Paid Referral (PF) to a user. Users get 1 Free Order (FO) for every 3 PF.
+- `/addfo user:<user> count:<number>` — Add Free Orders (FO) to a user.
+- `/removefo user:<user> count:<number>` — Remove Free Orders (FO) from a user.
+- `/addnf user:<user> count:<number>` — Add No Fee Orders (NF) to a user.
+- `/removenf user:<user> count:<number>` — Remove No Fee Orders (NF) from a user.
+- `/clearinvites user:<user>` — Reset a user's invite statistics to zero (admin only).
 
 Features
 --------
@@ -38,11 +43,12 @@ Features
 - Filters fake invites (configurable account age threshold, default 5 days).
 - Tracks leavers and decrements inviter's verified count.
 - PF/FO reward system: Users automatically get 1 Free Order (FO) for every 3 Paid Referrals (PF).
+- NF tracking: Manual No Fee Orders (NF) system for special rewards.
 - Vouchy integration: Automatically awards 1 point via `/addpoints` for each successful invite.
-- Real-time stats: regular, fake, left, PF, FO, total.
+- Real-time stats: regular, fake, left, PF, FO, NF, total.
 - Optional join announcements: set `INVITE_ANNOUNCE_CHANNEL_ID` to announce who invited whom and which code was used.
- - Vouchy integration: configure `VOUCHY_CHANNEL_ID`, `VOUCHY_PREFIX`, and/or `VOUCHY_BOT_ID` for reliable command execution. Set `VOUCHY_USE_WEBHOOK=true` to also try webhook delivery.
- - Live leaderboard: bot pins a single message with top inviters and updates it automatically on joins/leaves and PF/FO changes. Set `LEADERBOARD_CHANNEL_ID` (falls back to `INVITE_ANNOUNCE_CHANNEL_ID` or system channel).
+- Vouchy integration: configure `VOUCHY_CHANNEL_ID`, `VOUCHY_PREFIX`, and/or `VOUCHY_BOT_ID` for reliable command execution. Set `VOUCHY_USE_WEBHOOK=true` to also try webhook delivery.
+- Live leaderboard: bot pins a single message with top inviters and updates it automatically on joins/leaves and PF/FO/NF changes. Set `LEADERBOARD_CHANNEL_ID` (falls back to `INVITE_ANNOUNCE_CHANNEL_ID` or system channel).
 
 Railway Deployment
 ------------------

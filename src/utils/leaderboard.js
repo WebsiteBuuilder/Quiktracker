@@ -30,7 +30,7 @@ function buildLeaderboardEmbed(guildName, leaderboard) {
 		? ['No invite data yet.']
 		: leaderboard.map((entry, index) => {
 			const rank = String(index + 1).padStart(2, ' ');
-			return `${rank}. <@${entry.userId}> — **${entry.total}** (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders})`;
+			return `${rank}. <@${entry.userId}> — **${entry.total}** (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders} • NF ${entry.noFeeOrders})`;
 		});
 
 	return new EmbedBuilder()

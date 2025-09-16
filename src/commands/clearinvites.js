@@ -12,7 +12,7 @@ module.exports.execute = async (interaction) => {
 	const user = interaction.options.getUser('user');
 	const [stats] = await User.findOrCreate({
 		where: { userId: user.id, guildId: interaction.guild.id },
-		defaults: { regularInvites: 0, fakeInvites: 0, leftInvites: 0, paidReferrals: 0, freeOrders: 0 },
+		defaults: { regularInvites: 0, fakeInvites: 0, leftInvites: 0, paidReferrals: 0, freeOrders: 0, noFeeOrders: 0 },
 	});
 
 	// Store old values for confirmation message
@@ -22,6 +22,7 @@ module.exports.execute = async (interaction) => {
 		left: stats.leftInvites,
 		pf: stats.paidReferrals,
 		fo: stats.freeOrders,
+		nf: stats.noFeeOrders,
 		total: stats.regularInvites - stats.fakeInvites - stats.leftInvites + stats.paidReferrals
 	};
 
@@ -31,6 +32,7 @@ module.exports.execute = async (interaction) => {
 	stats.leftInvites = 0;
 	stats.paidReferrals = 0;
 	stats.freeOrders = 0;
+	stats.noFeeOrders = 0;
 
 	await stats.save();
 
@@ -41,8 +43,8 @@ module.exports.execute = async (interaction) => {
 		title: 'Invite Stats Cleared',
 		description: `${user.tag}'s invite statistics have been reset to zero.`,
 		fields: [
-			{ name: 'Previous Stats', value: `Reg ${oldStats.regular} • Fake ${oldStats.fake} • Left ${oldStats.left} • PF ${oldStats.pf} • FO ${oldStats.fo} • Total ${oldStats.total}`, inline: false },
-			{ name: 'New Stats', value: 'Reg 0 • Fake 0 • Left 0 • PF 0 • FO 0 • Total 0', inline: false }
+			{ name: 'Previous Stats', value: `Reg ${oldStats.regular} • Fake ${oldStats.fake} • Left ${oldStats.left} • PF ${oldStats.pf} • FO ${oldStats.fo} • NF ${oldStats.nf} • Total ${oldStats.total}`, inline: false },
+			{ name: 'New Stats', value: 'Reg 0 • Fake 0 • Left 0 • PF 0 • FO 0 • NF 0 • Total 0', inline: false }
 		],
 		color: 0xff0000,
 		timestamp: new Date(),

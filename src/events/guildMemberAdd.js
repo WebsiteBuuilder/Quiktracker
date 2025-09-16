@@ -83,7 +83,7 @@ module.exports = (client) => {
 					if (channel && channel.isTextBased()) {
 						const total = (inviterStats.regularInvites - inviterStats.fakeInvites - inviterStats.leftInvites + inviterStats.paidReferrals);
 						const inviteUsesNow = usedInvite?.uses ?? 0;
-						const message = `🎉 ${member} joined — invited by <@${inviterId}> using code \`${inviteCode}\` (uses: ${inviteUsesNow}). Invites: ${total} (Reg ${inviterStats.regularInvites} • Fake ${inviterStats.fakeInvites} • Left ${inviterStats.leftInvites} • PF ${inviterStats.paidReferrals} • FO ${inviterStats.freeOrders}).`;
+						const message = `🎉 ${member} joined — invited by <@${inviterId}> using code \`${inviteCode}\` (uses: ${inviteUsesNow}). Invites: ${total} (Reg ${inviterStats.regularInvites} • Fake ${inviterStats.fakeInvites} • Left ${inviterStats.leftInvites} • PF ${inviterStats.paidReferrals} • FO ${inviterStats.freeOrders} • NF ${inviterStats.noFeeOrders}).`;
 						console.log(`📤 Sending announcement: ${message}`);
 						await channel.send(message);
 						updateLeaderboardForGuild(member.guild).catch(() => {});

@@ -45,6 +45,17 @@ async function migrateDatabase() {
 			});
 			console.log('✅ Added freeOrders column');
 		}
+
+		// Add noFeeOrders column if it doesn't exist
+		if (!tableDescription.noFeeOrders) {
+			console.log('🔄 Adding noFeeOrders column...');
+			await queryInterface.addColumn('Users', 'noFeeOrders', {
+				type: sequelize.Sequelize.INTEGER,
+				allowNull: false,
+				defaultValue: 0,
+			});
+			console.log('✅ Added noFeeOrders column');
+		}
 		
 		// Migrate existing bonusInvites to paidReferrals if bonusInvites column exists
 		if (tableDescription.bonusInvites && tableDescription.paidReferrals) {
@@ -68,6 +79,7 @@ const User = sequelize.define('User', {
 	leftInvites: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 	paidReferrals: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 	freeOrders: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+	noFeeOrders: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 });
 
 const JoinLog = sequelize.define('JoinLog', {
