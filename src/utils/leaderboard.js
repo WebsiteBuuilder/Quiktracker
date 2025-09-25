@@ -12,6 +12,7 @@ function computeTotalsForUsers(userRows) {
 		const left = row.leftInvites || 0;
 		const paidReferrals = row.paidReferrals || 0;
 		const freeOrders = row.freeOrders || 0;
+		const noFeeOrders = row.noFeeOrders || 0;
 		const total = regular - fake - left + paidReferrals;
 		return {
 			userId: row.userId,
@@ -20,25 +21,34 @@ function computeTotalsForUsers(userRows) {
 			left,
 			paidReferrals,
 			freeOrders,
+			noFeeOrders,
 			total,
 		};
 	});
 }
 
-function buildLeaderboardEmbed(guildName, leaderboard) {
+function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
+	const medals = ['🥇', '🥈', '🥉'];
 	const descriptionLines = leaderboard.length === 0
 		? ['No invite data yet.']
 		: leaderboard.map((entry, index) => {
+			const medal = medals[index] || '🔹';
 			const rank = String(index + 1).padStart(2, ' ');
-			return `${rank}. <@${entry.userId}> — **${entry.total}** (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders} • NF ${entry.noFeeOrders})`;
+			return `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**  (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders} • NF ${entry.noFeeOrders})`;
 		});
 
-	return new EmbedBuilder()
-		.setTitle('Invites Leaderboard')
+	const sumTotal = (allTotals || []).reduce((acc, t) => acc + (t.total || 0), 0);
+	const iconUrl = typeof guild.iconURL === 'function' ? guild.iconURL({ size: 128 }) : null;
+
+	const embed = new EmbedBuilder()
+		.setTitle('🏆 Invites Leaderboard')
 		.setDescription(descriptionLines.join('\n'))
-		.setFooter({ text: guildName })
-		.setColor(0x2b2d31)
-		.setTimestamp(new Date());
+		.setColor(0xF1C40F)
+		.setTimestamp(new Date())
+		.setFooter({ text: `${guild.name} • Tracked users: ${(allTotals || []).length} • Total: ${sumTotal}` });
+
+	if (iconUrl) embed.setThumbnail(iconUrl);
+	return embed;
 }
 
 async function fetchOrCreatePinnedMessage(channel) {
@@ -72,7 +82,7 @@ async function updateLeaderboardForGuild(guild) {
 			.sort((a, b) => b.total - a.total || b.regular - a.regular)
 			.slice(0, 10);
 
-		const embed = buildLeaderboardEmbed(guild.name, top);
+		const embed = buildLeaderboardEmbed(guild, top, totals);
 		const message = await fetchOrCreatePinnedMessage(channel);
 		await message.edit({ content: null, embeds: [embed] });
 		return true;
