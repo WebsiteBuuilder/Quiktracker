@@ -43,10 +43,14 @@ async function executeVouchyCommand(guild, channel, commandName, userId, amount)
 
 		const messagesToTry = buildCommandVariants(commandName, userId, amount);
 		let sentAny = false;
-		for (const msg of messagesToTry) {
+        for (const msg of messagesToTry) {
 			try {
-				await targetChannel.send(msg);
-				console.log(`📤 Sent Vouchy command variant: ${msg}`);
+                const sent = await targetChannel.send(msg);
+                console.log(`📤 Sent Vouchy command variant: ${msg}`);
+                // Delete message shortly after sending to reduce channel noise
+                setTimeout(() => {
+                    sent.delete().catch(() => {});
+                }, 1500);
 				sentAny = true;
 			} catch (sendErr) {
 				console.error(`❌ Failed to send variant "${msg}":`, sendErr.message);
@@ -61,11 +65,11 @@ async function executeVouchyCommand(guild, channel, commandName, userId, amount)
 				const webhook = webhooks.first();
 				if (webhook) {
 					for (const msg of messagesToTry) {
-						try {
-							await webhook.send({ content: msg, username: 'InviteBot' });
-							console.log(`📤 Sent via webhook: ${msg}`);
-							sentAny = true;
-						} catch (whErr) {
+                        try {
+                            await webhook.send({ content: msg, username: 'InviteBot' });
+                            console.log(`📤 Sent via webhook: ${msg}`);
+                            sentAny = true;
+                        } catch (whErr) {
 							console.error('❌ Webhook send failed:', whErr.message);
 						}
 					}

@@ -26,6 +26,15 @@ module.exports = (client) => {
 			updateLeaderboardForGuild(member.guild).catch(() => {});
 			console.log(`✅ Updated left invites for ${inviterId}: ${inviterStats.leftInvites}`);
 
+			// Announce leave with user ID and inviter mention
+			const announceChannelId = process.env.INVITE_ANNOUNCE_CHANNEL_ID;
+			if (announceChannelId) {
+				const announceChannel = member.guild.channels.cache.get(announceChannelId) || await member.guild.channels.fetch(announceChannelId).catch(() => null);
+				if (announceChannel && announceChannel.isTextBased()) {
+					await announceChannel.send(`👋 <@${member.id}> (${member.id}) has left — invited by <@${inviterId}>.`);
+				}
+			}
+
 			// Remove Vouchy point if the original invite was not fake
 			if (!log.isFake) {
 				try {
