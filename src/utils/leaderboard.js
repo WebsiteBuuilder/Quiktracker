@@ -29,16 +29,29 @@ function computeTotalsForUsers(userRows) {
 
 function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 	const medals = ['🥇', '🥈', '🥉'];
+
+	// Progress bar helper
+	const maxTotal = Math.max(1, ...leaderboard.map(x => x.total || 0));
+	const renderBar = (value) => {
+		const segments = 10;
+		const filled = Math.max(0, Math.min(segments, Math.round((value / maxTotal) * segments)));
+		return '▰'.repeat(filled) + '▱'.repeat(segments - filled);
+	};
+
 	const descriptionLines = leaderboard.length === 0
 		? ['No invite data yet.']
-		: leaderboard.map((entry, index) => {
+		: leaderboard.flatMap((entry, index) => {
 			const medal = medals[index] || '🔹';
 			const rank = String(index + 1).padStart(2, ' ');
-			return `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**  (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders} • $5 Orders ${entry.noFeeOrders})`;
+			const header = `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**`;
+			const bar = renderBar(entry.total);
+			const stats = `(${entry.regular} Reg • ${entry.fake} Fake • ${entry.left} Left • ${entry.paidReferrals} PF • ${entry.freeOrders} FO • ${entry.noFeeOrders} $5 Orders)`;
+			return [header, `   ${bar} ${stats}`];
 		});
 
 	const sumTotal = (allTotals || []).reduce((acc, t) => acc + (t.total || 0), 0);
 	const iconUrl = typeof guild.iconURL === 'function' ? guild.iconURL({ size: 128 }) : null;
+	const bannerUrl = typeof guild.bannerURL === 'function' ? guild.bannerURL({ size: 1024 }) : null;
 
 	const embed = new EmbedBuilder()
 		.setTitle('🏆 Invites Leaderboard')
@@ -48,6 +61,7 @@ function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 		.setFooter({ text: `${guild.name} • Tracked users: ${(allTotals || []).length} • Total: ${sumTotal}` });
 
 	if (iconUrl) embed.setThumbnail(iconUrl);
+	if (bannerUrl) embed.setImage(bannerUrl);
 	return embed;
 }
 
