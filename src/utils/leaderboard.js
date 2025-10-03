@@ -13,6 +13,9 @@ function computeTotalsForUsers(userRows) {
 		const paidReferrals = row.paidReferrals || 0;
 		const freeOrders = row.freeOrders || 0;
 		const noFeeOrders = row.noFeeOrders || 0;
+		const potentialFreeOrders = Math.floor(paidReferrals / 3);
+		const redeemedFreeOrders = Math.max(0, potentialFreeOrders - freeOrders);
+		const pfProgress = paidReferrals % 3;
 		const total = regular - fake - left + paidReferrals;
 		return {
 			userId: row.userId,
@@ -22,6 +25,9 @@ function computeTotalsForUsers(userRows) {
 			paidReferrals,
 			freeOrders,
 			noFeeOrders,
+			potentialFreeOrders,
+			redeemedFreeOrders,
+			pfProgress,
 			total,
 		};
 	});
@@ -40,14 +46,23 @@ function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 
 	const descriptionLines = leaderboard.length === 0
 		? ['No invite data yet.']
-		: leaderboard.flatMap((entry, index) => {
-			const medal = medals[index] || '🔹';
-			const rank = String(index + 1).padStart(2, ' ');
-			const header = `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**`;
-			const bar = renderBar(entry.total);
-			const stats = `(${entry.regular} Reg • ${entry.fake} Fake • ${entry.left} Left • ${entry.paidReferrals} PF • ${entry.freeOrders} FO • ${entry.noFeeOrders} $5 Orders)`;
-			return [header, `   ${bar} ${stats}`];
-		});
+		: [
+			'Every 3 PF = 1 FO',
+			...leaderboard.flatMap((entry, index) => {
+				const medal = medals[index] || '🔹';
+				const rank = String(index + 1).padStart(2, ' ');
+				const header = `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**`;
+				const bar = renderBar(entry.total);
+				const pfBar = '▰'.repeat(entry.pfProgress) + '▱'.repeat(3 - entry.pfProgress);
+				const pfLine = `   PF progress: ${pfBar} (${entry.pfProgress}/3) • PF ${entry.paidReferrals}`;
+				const foEarned = entry.potentialFreeOrders;
+				const foAvail = entry.freeOrders;
+				const foRedeemed = Math.max(0, entry.redeemedFreeOrders);
+				const foLine = `   FO earned ${foEarned} • available ${foAvail}${foRedeemed > 0 ? ` • redeemed ${foRedeemed}` : ''} • $5 Orders ${entry.noFeeOrders}`;
+				const stats = `(${entry.regular} Reg • ${entry.fake} Fake • ${entry.left} Left)`;
+				return [header, `   ${bar}`, pfLine, foLine, `   ${stats}`];
+			})
+		];
 
 	const sumTotal = (allTotals || []).reduce((acc, t) => acc + (t.total || 0), 0);
 	const iconUrl = typeof guild.iconURL === 'function' ? guild.iconURL({ size: 128 }) : null;
