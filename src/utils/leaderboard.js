@@ -34,7 +34,7 @@ function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 		: leaderboard.map((entry, index) => {
 			const medal = medals[index] || '🔹';
 			const rank = String(index + 1).padStart(2, ' ');
-			return `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**  (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders} • NF ${entry.noFeeOrders})`;
+			return `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**  (Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left} • PF ${entry.paidReferrals} • FO ${entry.freeOrders} • $5 Orders ${entry.noFeeOrders})`;
 		});
 
 	const sumTotal = (allTotals || []).reduce((acc, t) => acc + (t.total || 0), 0);

@@ -25,7 +25,7 @@ module.exports.execute = async (interaction) => {
 			{ name: 'Left', value: String(left), inline: true },
 			{ name: 'PF', value: String(pf), inline: true },
 			{ name: 'FO', value: String(fo), inline: true },
-			{ name: 'NF', value: String(nf), inline: true },
+			{ name: '$5 Orders', value: String(nf), inline: true },
 		)
 		.setColor(0x5865F2);
 

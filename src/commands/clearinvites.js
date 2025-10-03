@@ -43,8 +43,8 @@ module.exports.execute = async (interaction) => {
 		title: 'Invite Stats Cleared',
 		description: `${user.tag}'s invite statistics have been reset to zero.`,
 		fields: [
-			{ name: 'Previous Stats', value: `Reg ${oldStats.regular} • Fake ${oldStats.fake} • Left ${oldStats.left} • PF ${oldStats.pf} • FO ${oldStats.fo} • NF ${oldStats.nf} • Total ${oldStats.total}`, inline: false },
-			{ name: 'New Stats', value: 'Reg 0 • Fake 0 • Left 0 • PF 0 • FO 0 • NF 0 • Total 0', inline: false }
+			{ name: 'Previous Stats', value: `Reg ${oldStats.regular} • Fake ${oldStats.fake} • Left ${oldStats.left} • PF ${oldStats.pf} • FO ${oldStats.fo} • $5 Orders ${oldStats.nf} • Total ${oldStats.total}`, inline: false },
+			{ name: 'New Stats', value: 'Reg 0 • Fake 0 • Left 0 • PF 0 • FO 0 • $5 Orders 0 • Total 0', inline: false }
 		],
 		color: 0xff0000,
 		timestamp: new Date(),
