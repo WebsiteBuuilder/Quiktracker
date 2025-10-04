@@ -33,7 +33,7 @@ function computeTotalsForUsers(userRows) {
 	});
 }
 
-function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
+async function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 	const medals = ['🥇', '🥈', '🥉'];
 
 	// PF progress bar (3-step loop)
@@ -43,10 +43,22 @@ function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 		? [
 			{ name: 'No invite data yet.', value: 'Invite someone to get on the board!', inline: false },
 		]
-		: leaderboard.map((entry, index) => {
+		: await Promise.all(leaderboard.map(async (entry, index) => {
 			const medal = medals[index] || '🔹';
 			const rank = String(index + 1).padStart(2, ' ');
-			const name = `${medal} ${rank}. <@${entry.userId}> — **${entry.total}**`;
+			
+			// Fetch the actual user to get their username
+			let username = 'Unknown User';
+			try {
+				const user = await guild.client.users.fetch(entry.userId).catch(() => null);
+				if (user) {
+					username = user.tag || user.username || 'Unknown User';
+				}
+			} catch (err) {
+				console.error(`Failed to fetch user ${entry.userId}:`, err.message);
+			}
+			
+			const name = `${medal} ${rank}. ${username} — **${entry.total}**`;
 			const pfBar = pfBarFor(entry.pfProgress);
 			const foEarned = entry.potentialFreeOrders;
 			const foAvail = entry.freeOrders;
@@ -57,7 +69,7 @@ function buildLeaderboardEmbed(guild, leaderboard, allTotals) {
 				`(Reg ${entry.regular} • Fake ${entry.fake} • Left ${entry.left})`,
 			].join('\n');
 			return { name, value, inline: false };
-		});
+		}));
 
 	const sumTotal = (allTotals || []).reduce((acc, t) => acc + (t.total || 0), 0);
 	const iconUrl = typeof guild.iconURL === 'function' ? guild.iconURL({ size: 128 }) : null;
@@ -107,7 +119,7 @@ async function updateLeaderboardForGuild(guild) {
 			.sort((a, b) => b.total - a.total || b.regular - a.regular)
 			.slice(0, 10);
 
-		const embed = buildLeaderboardEmbed(guild, top, totals);
+		const embed = await buildLeaderboardEmbed(guild, top, totals);
 		const message = await fetchOrCreatePinnedMessage(channel);
 		await message.edit({ content: null, embeds: [embed] });
 		return true;
