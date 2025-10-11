@@ -8,7 +8,12 @@ module.exports.data = new SlashCommandBuilder()
 
 module.exports.execute = async (interaction) => {
 	const user = interaction.options.getUser('user') || interaction.user;
-	const stats = await User.findOne({ where: { userId: user.id, guildId: interaction.guild.id } });
+        const guildId = interaction.guildId;
+        if (!guildId) {
+                return interaction.reply({ content: 'This command can only be used inside a server.', ephemeral: true });
+        }
+
+        const stats = await User.findOne({ where: { userId: user.id, guildId } });
 	const regular = stats?.regularInvites ?? 0;
 	const fake = stats?.fakeInvites ?? 0;
 	const left = stats?.leftInvites ?? 0;
